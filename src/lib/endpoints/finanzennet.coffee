@@ -1,14 +1,22 @@
 Endpoint = require '../endpoint.js'
 Crawler = require('crawler').Crawler
+Cache = require('../cache.js')
 
 ###
 Fetch stock data from finanzen.net
 ###
 class FinanzennetEndpoint extends Endpoint
-    constructor: ->
+    
+    constructor: (@cacheResults = true) ->
         this.baseUrl = 'http://www.finanzen.net'
+
+        if @cacheResults
+            @cache = new Cache()
+        else 
+            @cache = null
+
         this.crawler = new Crawler
-            forceUTF8: true
+            forceUTF8: false
             #debug: true
             maxConnections: 10
             # Means if we request the same URI twice it is not crawled again.
@@ -20,28 +28,36 @@ class FinanzennetEndpoint extends Endpoint
     Retrieve a single index by some search.
     This method always returns only one result. The one that fits the search term best.
     ###
-    searchIndex: (name, cb) ->
-        that = this
+    searchIndex: (name, cb) =>
 
-        # fetch indicies
-        this.crawler.queue [
-            uri: 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Indizes'
-            callback: (error, result, $) =>
-                if error
-                    cb(new Error('Could not load finanzen.net!'), null)
-                    return
+        fromCache = false
+        if @cache
+            @cache.get name, (err, value) =>
+                if not err
+                    fromCache = true
+                    cb(null, value)
+                    cb = () ->
 
-                # if search has a unique result finanzen.net redirects directly to the equity page
-                if this._isValidIndexUrl result.request.href
-                    this.crawlIndex result.request.href, cb
-                else
-                    url = $('.main table tr').eq(1).find('a').attr('href')
-                    if not url
-                        cb null, null
+        if not fromCache
+            # fetch indicies
+            @crawler.queue [
+                uri: 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Indizes'
+                callback: (error, result, $) =>
+                    if error
+                        cb(new Error('Could not load finanzen.net!'), null)
+                        return
+
+                    # if search has a unique result finanzen.net redirects directly to the equity page
+                    if @_isValidIndexUrl result.request.href
+                        @crawlIndex result.request.href, cb
                     else
-                        this.crawlIndex this.baseUrl + url, cb
-            ]
-        this
+                        url = $('.main table tr').eq(1).find('a').attr('href')
+                        if not url
+                            cb null, null
+                        else
+                            @crawlIndex @.baseUrl + url, cb
+                ]
+        @
 
     ###
     Retrieve a single equity by ISIN
@@ -230,7 +246,7 @@ class FinanzennetEndpoint extends Endpoint
     ###
     Crawl an index by its URL on finanzen.net
     ###
-    crawlIndex: (url, cb) ->
+    crawlIndex: (url, cb) =>
         this.crawler.queue [
             uri: url
             callback: (err, result, $) =>
@@ -299,6 +315,10 @@ class FinanzennetEndpoint extends Endpoint
                             if monthlyPrices.length == 12
                                 break
                         index.monthlyPrices = monthlyPrices
+
+                        if @cache
+                            @cache.set index.name, index, (err) =>
+
 
                         cb null, index
                 ]

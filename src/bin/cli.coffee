@@ -12,6 +12,7 @@ program
     .option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax'))
     .option('-o, --output <format>', 'choose output format [table]', list, list('table'))
     .option('-r, --rating <type>', 'choose rating system [none]', list, null)
+    .option('-c, --cache <option>', 'use cache options: all, clear [all]', list, list('all'))
     .parse(process.argv)
 
 [name, opts...] = program.input
@@ -29,7 +30,11 @@ if program.rating
     if opts.length == 0 and name.toLowerCase() == 'levermann' and importer instanceof IndexImporter
         opts.push importer.getIndexName()
 
-    rating = trader.Rating.create name, opts...
+    try
+        rating = trader.Rating.create name, opts...
+    catch err
+        process.stderr.write err.message + '\n'
+        process.exit 1
 
 rl = readline.createInterface
     input: process.stdin,
@@ -67,6 +72,10 @@ importerCb = (err, equities) ->
         process.exit 0
 
     ratingCb = (err, ratings) ->
+        if err
+            process.stderr.write err.message + '\n'
+            process.exit 1
+
         for e in equities
             e.rating = ratings[e.isin]
 

@@ -27,7 +27,7 @@ class Rating
     ###
     Static factory method
     ###
-    @create = (name, args...) ->
+    @create: (name, args...) ->
         c = require './ratings/' + name.toLowerCase() + '.js'
         new c(args...)
 

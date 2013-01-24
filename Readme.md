@@ -43,6 +43,7 @@ There are the following rating systems shipped with trader:
 
 - __orderby__(factName, descending=true): Order equities by a fact in the latestFact object.
 - __levermann__(indexName): Rating system according to Susanne Levermann's book "Der entspannte Weg zum Reichtum"
+- __custom__(indexName, indicators_weights): define the used indicators and their weights in the comman line
 
 ## Examples
 
@@ -65,6 +66,10 @@ Load the 30 equities of the DAX, display as text table and order by dividend per
 Rate DAX with Levermann rating system:
 
     $ trader -i dax -o table -r levermann
+
+Rate DAX wirh Levermann rating system using the custom rating:
+
+    $ trader -i jsonfile:dax.json -o table -r custom:DAX:ebitmargin,1:equityratio,1:pbratio,1:peratiomean,1:performance12m,1:performance6m,1:pricemomentum,1:prratio,1:returnofequity,1:threemonthreversal,1
 
 Output DAX to file first, read from file and rate with Levermann:
 

@@ -70,6 +70,7 @@ class IndexImporter
                         equity.historicFacts = if equity2 then equity2.historicFacts else []
 
                         equities.push equity
+                        
                         callbackCounter++
 
                         if tick

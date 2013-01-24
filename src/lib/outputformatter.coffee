@@ -13,7 +13,7 @@ class OutputFormatter
     ###
     Static factory method
     ###
-    @create = (name, args...) ->
+    @create: (name, args...) ->
         c = require './outputformatters/' + name.toLowerCase() + '.js'
         new c(args...)
 

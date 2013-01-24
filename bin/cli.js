@@ -16,7 +16,7 @@
     return val.split(':');
   };
 
-  program.version('0.1.0').option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)').option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax')).option('-o, --output <format>', 'choose output format [table]', list, list('table')).option('-r, --rating <type>', 'choose rating system [none]', list, null).parse(process.argv);
+  program.version('0.1.0').option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)').option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax')).option('-o, --output <format>', 'choose output format [table]', list, list('table')).option('-r, --rating <type>', 'choose rating system [none]', list, null).option('-c, --cache <option>', 'choose rating system [none]', list, list('all', 'clear')).parse(process.argv);
 
   _ref = program.input, name = _ref[0], opts = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
 
@@ -34,7 +34,12 @@
     if (opts.length === 0 && name.toLowerCase() === 'levermann' && importer instanceof IndexImporter) {
       opts.push(importer.getIndexName());
     }
-    rating = (_ref5 = trader.Rating).create.apply(_ref5, [name].concat(__slice.call(opts)));
+    try {
+      rating = (_ref5 = trader.Rating).create.apply(_ref5, [name].concat(__slice.call(opts)));
+    } catch (err) {
+      process.stderr.write(err.message + '\n');
+      process.exit(1);
+    }
   }
 
   rl = readline.createInterface({
@@ -80,6 +85,10 @@
     }
     ratingCb = function(err, ratings) {
       var e, _i, _len;
+      if (err) {
+        process.stderr.write(err.message + '\n');
+        process.exit(1);
+      }
       for (_i = 0, _len = equities.length; _i < _len; _i++) {
         e = equities[_i];
         e.rating = ratings[e.isin];
