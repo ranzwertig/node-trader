@@ -14,12 +14,15 @@ The tool is inspired by [https://github.com/sscit/trader].
 
       Options:
 
-        -h, --help               output usage information
-        -V, --version            output the version number
-        -p, --progress           show a progress bar if possible (do not use progress if you want to pipe the output)
-        -i, --input <importer>   importer to use to fetch equities [dax]
-        -o, --output <format>    choose output format [table]
-        -r, --rating <type>      choose rating system [none]
+        -h, --help                       output usage information
+        -V, --version                    output the version number
+        -p, --progress                   show a progress bar if possible (do not use progress if you want to pipe the output)
+        -i, --input <importer>           importer to use to fetch equities [dax]
+        -o, --output <format>            choose output format [table]
+        -r, --rating <type>              choose rating system [none]
+        -c, --cache <action>             cache action, options: all, clear
+        -f, --cachefolder <cachefolder>  cache data to folder [/tmp/trader]
+        -t, --cachetime <seconds>        cache time in seconds [86400]
 
 ### Importers
 
@@ -67,7 +70,7 @@ Rate DAX with Levermann rating system:
 
     $ trader -i dax -o table -r levermann
 
-Rate DAX with Levermann rating system using the custom rating:
+Rate DAX wi Levermann rating system using the custom rating:
 
     $ trader -i jsonfile:dax.json -o table -r custom:DAX:ebitmargin,1:equityratio,1:pbratio,1:peratiomean,1:performance12m,1:performance6m,1:pricemomentum,1:prratio,1:returnofequity,1:threemonthreversal,1
 
