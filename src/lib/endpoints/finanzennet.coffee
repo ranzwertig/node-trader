@@ -1,21 +1,19 @@
 Endpoint = require '../endpoint.js'
 Crawler = require('crawler').Crawler
-Cache = require('../cache.js')
+Cache = require '../cache.js' 
 
 ###
 Fetch stock data from finanzen.net
 ###
 class FinanzennetEndpoint extends Endpoint
     
-    constructor: (@cacheResults = true) ->
-        this.baseUrl = 'http://www.finanzen.net'
+    constructor: () ->
+        @baseUrl = 'http://www.finanzen.net'
 
-        if @cacheResults
-            @cache = new Cache()
-        else 
-            @cache = null
+        @cache = Cache.getInstance()
+        @cacheKeySalt = 'finanzen.net'
 
-        this.crawler = new Crawler
+        @crawler = new Crawler
             forceUTF8: false
             #debug: true
             maxConnections: 10
@@ -28,35 +26,31 @@ class FinanzennetEndpoint extends Endpoint
     Retrieve a single index by some search.
     This method always returns only one result. The one that fits the search term best.
     ###
-    searchIndex: (name, cb) =>
+    searchIndex: (name, cb) ->
 
-        fromCache = false
         if @cache
-            @cache.get name, (err, value) =>
-                if not err
-                    fromCache = true
-                    cb(null, value)
-                    cb = () ->
+            cached = @cache.get @cacheKeySalt + name
+            if cached 
+                cb(null, cached)
+                return @
 
-        if not fromCache
-            # fetch indicies
-            @crawler.queue [
-                uri: 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Indizes'
-                callback: (error, result, $) =>
-                    if error
-                        cb(new Error('Could not load finanzen.net!'), null)
-                        return
-
-                    # if search has a unique result finanzen.net redirects directly to the equity page
-                    if @_isValidIndexUrl result.request.href
-                        @crawlIndex result.request.href, cb
+        # fetch indicies
+        @crawler.queue [
+            uri: 'http://www.finanzen.net/suchergebnis.asp?strSuchString=' + encodeURIComponent(name) + '&strKat=Indizes'
+            callback: (error, result, $) =>
+                if error
+                    cb(new Error('Could not load finanzen.net!'), null)
+                    return
+                # if search has a unique result finanzen.net redirects directly to the equity page
+                if @_isValidIndexUrl result.request.href
+                    @crawlIndex result.request.href, cb
+                else
+                    url = $('.main table tr').eq(1).find('a').attr('href')
+                    if not url
+                        cb null, null
                     else
-                        url = $('.main table tr').eq(1).find('a').attr('href')
-                        if not url
-                            cb null, null
-                        else
-                            @crawlIndex @.baseUrl + url, cb
-                ]
+                        @crawlIndex @.baseUrl + url, cb
+            ]
         @
 
     ###
@@ -64,8 +58,8 @@ class FinanzennetEndpoint extends Endpoint
     ###
     getEquityByIsin: (isin, stockMarket, cb) ->
         # we just use search here
-        this.searchEquity(isin, stockMarket, cb)
-        this
+        @searchEquity(isin, stockMarket, cb)
+        @
 
     ###
     Retrieve a single equity by some search.
@@ -228,7 +222,7 @@ class FinanzennetEndpoint extends Endpoint
                         lastValue = null
                         for row in rows
                             tds = $(row).find('td')
-                            month = parseInt(tds.eq(0).text().split('.')[1])
+                            month = parseInt(tds.eq(0).text().split('.')[1], 10)
                             value = parseFloat(tds.eq(1).text().replace('.', '').replace(',','.'))
                             if lastMonth != null and lastMonth != month
                                 monthlyPrices.push value
@@ -306,7 +300,7 @@ class FinanzennetEndpoint extends Endpoint
                         lastValue = null
                         for row in rows
                             tds = $(row).find('td')
-                            month = parseInt(tds.eq(0).text().split('.')[1])
+                            month = parseInt(tds.eq(0).text().split('.')[1], 10)
                             value = parseFloat(tds.eq(1).text().replace('.', '').replace(',','.'))
                             if lastMonth != null and lastMonth != month
                                 monthlyPrices.push value
@@ -317,7 +311,8 @@ class FinanzennetEndpoint extends Endpoint
                         index.monthlyPrices = monthlyPrices
 
                         if @cache
-                            @cache.set index.name, index, (err) =>
+                            @cache.set @cacheKeySalt + index.name, index, (err) =>
+                                # don't handle anything on cache write error
 
 
                         cb null, index

@@ -67,7 +67,7 @@ Rate DAX with Levermann rating system:
 
     $ trader -i dax -o table -r levermann
 
-Rate DAX wirh Levermann rating system using the custom rating:
+Rate DAX with Levermann rating system using the custom rating:
 
     $ trader -i jsonfile:dax.json -o table -r custom:DAX:ebitmargin,1:equityratio,1:pbratio,1:peratiomean,1:performance12m,1:performance6m,1:pricemomentum,1:prratio,1:returnofequity,1:threemonthreversal,1
 

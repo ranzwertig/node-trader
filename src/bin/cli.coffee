@@ -12,8 +12,17 @@ program
     .option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax'))
     .option('-o, --output <format>', 'choose output format [table]', list, list('table'))
     .option('-r, --rating <type>', 'choose rating system [none]', list, null)
-    .option('-c, --cache <option>', 'use cache options: all, clear [all]', list, list('all'))
+    .option('-c, --cache <action>', 'cache action, options: all, clear', null)
+    .option('-f, --cachefolder <cachefolder>', 'cache data to folder [/tmp/trader]', '/tmp/trader')
+    .option('-t, --cachetime <seconds>', 'cache time in seconds [86400]', parseInt, 86400)
     .parse(process.argv)
+
+# initialize cache instance with command line options
+# Cache is a singleton
+if program.cache
+    cache = trader.Cache.getInstance(true, program.cache, program.cachefolder, program.cachetime)
+else
+    cache = trader.Cache.getInstance(false)
 
 [name, opts...] = program.input
 importer = trader.Importer.create name, opts...

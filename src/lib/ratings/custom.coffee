@@ -1,6 +1,7 @@
 Rating = require '../rating.js'
 Indicator = require '../indicator.js'
 Endpoint = require '../endpoint.js'
+Cache = require('../cache.js')
 
 ###
 Compute scores according custom pre defined indicators weightened by given weights
@@ -14,7 +15,7 @@ class CustomRating extends Rating
     @param {array} indicatorsAndWeightsArray everything after custom:INDEX: defining the indicators and weights, formated like e.g. custom:DAX:ReturnOfEquity,1:EbitMargin:2
     ###
     constructor: (@indexName, indicatorsAndWeightsArray...) ->
-        @finanzennetEndpoint = Endpoint.create 'finanzennet'         
+        @finanzennetEndpoint = Endpoint.create 'finanzennet', new Cache()   
 
         @indicatorsAndWeights = {}
         for pair in indicatorsAndWeightsArray

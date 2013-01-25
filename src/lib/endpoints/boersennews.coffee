@@ -7,8 +7,10 @@ Fetch stock data from boersennews.de
 Attention: This endpoint returns all facts in currency EUR!
 ###
 class BoersennewsEndpoint extends Endpoint
-    constructor: ->
+
+    constructor: () ->
         this.baseUrl = 'http://www.boersennews.de'
+
         this.crawler = new Crawler
             forceUTF8: true
             #debug: true

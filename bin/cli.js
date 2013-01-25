@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 (function() {
-  var IndexImporter, ProgressBar, importer, importerCb, list, makeTick, name, opts, output, program, rating, readline, rl, trader, _ref, _ref1, _ref2, _ref3, _ref4, _ref5,
+  var IndexImporter, ProgressBar, cache, importer, importerCb, list, makeTick, name, opts, output, program, rating, readline, rl, trader, _ref, _ref1, _ref2, _ref3, _ref4, _ref5,
     __slice = [].slice;
 
   trader = require('../lib/trader.js');
@@ -16,7 +16,13 @@
     return val.split(':');
   };
 
-  program.version('0.1.0').option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)').option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax')).option('-o, --output <format>', 'choose output format [table]', list, list('table')).option('-r, --rating <type>', 'choose rating system [none]', list, null).option('-c, --cache <option>', 'choose rating system [none]', list, list('all', 'clear')).parse(process.argv);
+  program.version('0.1.0').option('-p, --progress', 'show a progress bar if possible (do not use progress if you want to pipe the output)').option('-i, --input <importer>', 'importer to use to fetch equities [dax]', list, list('dax')).option('-o, --output <format>', 'choose output format [table]', list, list('table')).option('-r, --rating <type>', 'choose rating system [none]', list, null).option('-c, --cache <action>', 'cache action, options: all, clear', null).option('-f, --cachefolder <cachefolder>', 'cache data to folder [/tmp/trader]', '/tmp/trader').option('-t, --cachetime <seconds>', 'cache time in seconds [86400]', parseInt, 86400).parse(process.argv);
+
+  if (program.cache) {
+    cache = trader.Cache.getInstance(true, program.cache, program.cachefolder, program.cachetime);
+  } else {
+    cache = trader.Cache.getInstance(false);
+  }
 
   _ref = program.input, name = _ref[0], opts = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
 
